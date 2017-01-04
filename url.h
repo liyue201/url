@@ -32,6 +32,11 @@ typedef enum
    HOST_DOMAIN
 } host_type_t;
 
+typedef struct _query_pair{
+      char *name;
+      char *value;
+}query_pair_t;
+   
 typedef struct _url_field
 {
    host_type_t host_type;
@@ -43,10 +48,7 @@ typedef struct _url_field
    char *port;
    char *path;
    int query_num;
-   struct {
-      char *name;
-      char *value;
-   } *query;
+   query_pair_t *query;
    char *fragment;
 } url_field_t;
 

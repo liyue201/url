@@ -11,9 +11,9 @@
 #include <stdio.h>
 #include <string.h>
 
-static char *str_hosttype[] = { "host ipv4", "host ipv6", "host domain", NULL };
+static char str_hosttype[][20] = { "host ipv4", "host ipv6", "host domain" };
 
-static char *strndup(const char *str, int n)
+static char *mystrndup(const char *str, int n)
 {
    char *dst;
    if (!str) return NULL;
@@ -50,22 +50,22 @@ void parse_query(url_field_t *url, char *query)
    while (chr)
    {
       if (url->query)
-         url->query = realloc(url->query, (url->query_num + 1) * sizeof(*url->query));
+          url->query = (query_pair_t*) realloc(url->query, (url->query_num + 1) * sizeof(query_pair_t));
       else
-         url->query = malloc(sizeof(*url->query));
-      url->query[url->query_num].name = strndup(query, chr - query);
+         url->query = (query_pair_t*) malloc(sizeof(query_pair_t));
+      url->query[url->query_num].name = mystrndup(query, chr - query);
       query = chr + 1;
       chr = strchr(query, '&');
       if (chr)
       {
-         url->query[url->query_num].value = strndup(query, chr - query);
+         url->query[url->query_num].value = mystrndup(query, chr - query);
          url->query_num++;
          query = chr + 1;
          chr = strchr(query, '=');
       }
       else
       {
-         url->query[url->query_num].value = strndup(query, -1);
+         url->query[url->query_num].value = mystrndup(query, -1);
          url->query_num++;
          break;
       }
@@ -82,11 +82,11 @@ url_field_t *url_parse (const char *str)
    memset(url, 0, sizeof(url_field_t));
    if (str && str[0])
    {
-      url->href = strndup(str, -1);
+      url->href = mystrndup(str, -1);
       pch = strchr(str, ':');   /* parse schema */
       if (pch && pch[1] == '/' && pch[2] == '/')
       {
-         url->schema = strndup(str, pch - str);
+         url->schema = mystrndup(str, pch - str);
          str = pch + 3;
       }
       else
@@ -97,12 +97,12 @@ url_field_t *url_parse (const char *str)
          pch = strchr(str, ':');
          if (pch)
          {
-            url->username = strndup(str, pch - str);
+            url->username = mystrndup(str, pch - str);
             str = pch + 1;
             pch = strchr(str, '@');
             if (pch)
             {
-               url->password = strndup(str, pch - str);
+               url->password = mystrndup(str, pch - str);
                str = pch + 1;
             }
             else
@@ -117,7 +117,7 @@ url_field_t *url_parse (const char *str)
          pch = strchr(str, ']');
          if (pch)
          {
-            url->host = strndup(str, pch - str);
+            url->host = mystrndup(str, pch - str);
             str = pch + 1;
             if (str[0] == ':')
             {
@@ -125,12 +125,12 @@ url_field_t *url_parse (const char *str)
                pch = strchr(str, '/');
                if (pch)
                {
-                  url->port = strndup(str, pch - str);
+                  url->port = mystrndup(str, pch - str);
                   str = pch + 1;
                }
                else
                {
-                  url->port = strndup(str, -1);
+                  url->port = mystrndup(str, -1);
                   str = str + strlen(str);
                }
             }
@@ -146,17 +146,17 @@ url_field_t *url_parse (const char *str)
          pch_slash = strchr(str, '/');
          if (pch && (!pch_slash || (pch_slash && pch<pch_slash)))
          {
-            url->host = strndup(str, pch - str);
+            url->host = mystrndup(str, pch - str);
             str = pch + 1;
             pch = strchr(str, '/');
             if (pch)
             {
-               url->port = strndup(str, pch - str);
+               url->port = mystrndup(str, pch - str);
                str = pch + 1;
             }
             else
             {
-               url->port = strndup(str, -1);
+               url->port = mystrndup(str, -1);
                str = str + strlen(str);
             }
          }
@@ -165,12 +165,12 @@ url_field_t *url_parse (const char *str)
             pch = strchr(str, '/');
             if (pch)
             {
-               url->host = strndup(str, pch - str);
+               url->host = mystrndup(str, pch - str);
                str = pch + 1;
             }
             else
             {
-               url->host = strndup(str, -1);
+               url->host = mystrndup(str, -1);
                str = str + strlen(str);
             }
          }
@@ -181,18 +181,18 @@ url_field_t *url_parse (const char *str)
          pch = strchr(str, '?');
          if (pch)
          {
-            url->path = strndup(str, pch - str);
+            url->path = mystrndup(str, pch - str);
             str = pch + 1;
             pch = strchr(str, '#');
             if (pch)
             {
-               query = strndup(str, pch - str);
+               query = mystrndup(str, pch - str);
                str = pch + 1;
-               url->fragment = strndup(str, -1);
+               url->fragment = mystrndup(str, -1);
             }
             else
             {
-               query = strndup(str, -1);
+               query = mystrndup(str, -1);
                str = str + strlen(str);
             }
             parse_query(url, query);
@@ -203,14 +203,14 @@ url_field_t *url_parse (const char *str)
             pch = strchr(str, '#');
             if (pch)
             {
-               url->path = strndup(str, pch - str);
+               url->path = mystrndup(str, pch - str);
                str = pch + 1;
-               url->fragment = strndup(str, -1);
+               url->fragment = mystrndup(str, -1);
                str = str + strlen(str);
             }
             else
             {
-               url->path = strndup(str, -1);
+               url->path = mystrndup(str, -1);
                str = str + strlen(str);
             }
          }
